@@ -52,7 +52,7 @@ a { color: inherit; }
 #stage { --u: 1cqw; position: relative; container-type: size; overflow: hidden; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; margin-inline: auto; }
 #stage[data-fmt="wide"] { width: 100%; aspect-ratio: 16 / 9; }
 #stage[data-fmt="tall"] { width: min(100%, 430px); aspect-ratio: 9 / 16; }
-@media (max-width: 820px) { #stage[data-fmt="tall"] { aspect-ratio: 9 / 20; } } /* celular: palco mais alto, para as salas não se sobreporem */
+@media (max-width: 820px) { body:not(.gravar) #stage[data-fmt="tall"] { aspect-ratio: 9 / 20; } } /* celular: palco mais alto, para as salas não se sobreporem */
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: default; touch-action: pan-y; }
 canvas.hit { cursor: pointer; }
 button { font-family: inherit; }
@@ -196,6 +196,12 @@ body.gravar .page { max-width: none; padding: 0; gap: 0; }
 body.gravar #stage { border: 0; border-radius: 0; }
 body.gravar #stage[data-fmt="wide"] { width: min(100vw, calc(100dvh * 16 / 9)); }
 body.gravar #stage[data-fmt="tall"] { width: min(100vw, calc(100dvh * 9 / 16)); }
+/* gravação limpa (#gravar-limpo): sem título, painel e legenda; salas maiores e rótulos legíveis */
+body.limpo #stage .title, body.limpo #stage .panel, body.limpo #stage .cap { display: none; }
+body.limpo #stage[data-fmt="wide"], body.limpo #stage[data-fmt="tall"] { width: 100vw; height: 100dvh; aspect-ratio: auto; } /* preenche a tela inteira, em qualquer proporção */
+body.limpo .chip { font-size: max(11px, 1.25cqw); padding: .4cqw 1cqw; }
+body.limpo .bubble { font-size: max(12px, 1.45cqw); }
+body.limpo .alert { bottom: 3cqw; font-size: max(15px, 1.9cqw); }
 a.mini { display: inline-flex; align-items: center; text-decoration: none; }
 body.live .note, body.live .actions, body.live .sec, body.live .foot, body.live .hint { display: none; }
 #wait { display: none; text-align: center; padding: 18vh 16px; font-family: var(--display); font-size: clamp(20px, 3vw, 30px); font-weight: 700; }
@@ -306,6 +312,7 @@ section.sec { display: grid; gap: 18px; scroll-margin-top: 16px; padding-top: 18
     <p class="hint">Clique em um agente, na cena ou na lista, para ver o que ele achou.</p>
     <div class="ctl">
       <div class="seg" role="group" aria-label="Zoom da cena"><button type="button" id="zOut" aria-label="Afastar" title="Afastar">−</button><button type="button" id="zIn" aria-label="Aproximar" title="Aproximar">+</button></div>
+      <button type="button" class="mini" id="fsBtn" title="Mostrar só a cena, em tela cheia">Tela cheia</button>
     </div>
   </div>
 
@@ -422,7 +429,7 @@ section.sec { display: grid; gap: 18px; scroll-margin-top: 16px; padding-top: 18
     <span><b>Esquadrão QA</b> · por Dimitre Souza · Otimiza Aí</span>
     <span>Demonstração com dados fictícios</span>
   </footer>
-  <button type="button" class="exitrec" id="exitRec">Sair do modo gravação <small>Esc</small></button>
+  <button type="button" class="exitrec" id="exitRec">Sair da tela cheia <small>Esc</small></button>
   <span class="sr" id="live" aria-live="polite"></span>
 </div>
 
@@ -508,16 +515,33 @@ section.sec { display: grid; gap: 18px; scroll-margin-top: 16px; padding-top: 18
 
   function boot(LIVE, est) {
   var GRAV = /gravar/.test(location.hash); if (GRAV) document.body.classList.add('gravar');
+  var LIMPO = /limpo/.test(location.hash); if (LIMPO) document.body.classList.add('limpo');
   var LITE = window.innerWidth < 820;
-  if (/gravar/.test(location.hash)) {
-    var exitBtn = document.getElementById('exitRec'), exitTimer = 0;
-    function showExit() { document.body.classList.add('showexit'); clearTimeout(exitTimer); exitTimer = setTimeout(function () { document.body.classList.remove('showexit'); }, 2800); }
-    function leaveRec() { location.hash = ''; }
-    exitBtn.addEventListener('click', leaveRec);
-    ['mousemove', 'touchstart', 'pointerdown'].forEach(function (ev) { window.addEventListener(ev, showExit, { passive: true }); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') leaveRec(); else showExit(); });
-    showExit();
+  var fsMode = false, fsScroll = 0, exitBtn = document.getElementById('exitRec'), exitTimer = 0;
+  function showExit() { document.body.classList.add('showexit'); clearTimeout(exitTimer); exitTimer = setTimeout(function () { document.body.classList.remove('showexit'); }, 2800); }
+  function enterFs() { // botão "Tela cheia": mostra só a cena, sem recarregar a página
+    if (fsMode || GRAV) return; fsMode = true; fsScroll = window.scrollY;
+    document.body.classList.add('gravar', 'limpo'); LIMPO = true; window.scrollTo(0, 0);
+    var el = document.documentElement; try { if (el.requestFullscreen) el.requestFullscreen().catch(function () {}); } catch (e) {}
+    setFmt(fmt); showExit();
   }
+  function leaveFs() {
+    if (!fsMode) return; fsMode = false; document.body.classList.remove('gravar', 'limpo', 'showexit'); LIMPO = false;
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+    setFmt(fmt); window.scrollTo(0, fsScroll);
+  }
+  function leaveRec() { if (fsMode) leaveFs(); else location.hash = ''; }
+  exitBtn.addEventListener('click', leaveRec);
+  ['mousemove', 'touchstart', 'pointerdown'].forEach(function (ev) { window.addEventListener(ev, function () { if (GRAV || fsMode) showExit(); }, { passive: true }); });
+  document.addEventListener('keydown', function (e) {
+    if (!GRAV && !fsMode) return;
+    if (e.key === 'Escape' && !document.fullscreenElement) leaveRec();
+    else if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey) { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); }
+    else showExit();
+  });
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && fsMode) leaveFs(); });
+  document.getElementById('fsBtn').addEventListener('click', enterFs);
+  if (GRAV) showExit();
   var plano = est && est.plano, ids = LIVE ? plano.agentes.map(function (x) { return x.id; }) : [];
   var agents = LIVE ? CATALOG.filter(function (a) { return ids.indexOf(a.id) >= 0; }) : CATALOG.slice();
   var sectors = SECTORS_ALL, TOTAL = agents.length, activeKeys = {}, gridInfo = { cols: 5, rows: 2 };
@@ -607,7 +631,7 @@ section.sec { display: grid; gap: 18px; scroll-margin-top: 16px; padding-top: 18
       r.x = (col - (inRow - 1) / 2) * dx; r.z = (row - (rn - 1) / 2) * dz; r.g.position.x = r.x; r.g.position.z = r.z;
     });
   }
-  function fitK() { var g = gridInfo, k = fmt === 'wide' ? Math.max(g.cols * 4.5 / 22.5, g.rows * 4.7 / 9.4) : Math.max(g.cols * 4.3 / (12.9 * Math.min(1, (stage.clientWidth / Math.max(1, stage.clientHeight)) / 0.5625)), g.rows * 4.25 / 17); return Math.max(0.55, Math.min(1, k)); }
+  function fitK() { var g = gridInfo, k = fmt === 'wide' ? Math.max(g.cols * 4.5 / 22.5, g.rows * 4.7 / 9.4) : Math.max(g.cols * 4.3 / (12.9 * Math.min(1, (stage.clientWidth / Math.max(1, stage.clientHeight)) / 0.5625)), g.rows * 4.25 / 17); return Math.max(0.55, Math.min(1, k)) * (LIMPO && fmt === 'wide' ? 0.94 : 1); }
 
   // coloca os agentes de cada setor nos pontos (x, z, olhando-para-x, olhando-para-z)
   function place(roomKey, spots, acts) {
@@ -1031,7 +1055,7 @@ section.sec { display: grid; gap: 18px; scroll-margin-top: 16px; padding-top: 18
   function fit() {
     var w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false); cam.aspect = w / h;
-    if (fmt === 'wide') cam.setViewOffset(w, h, w * 0.12, -h * 0.05, w, h); else cam.setViewOffset(w, h, 0, -h * 0.06, w, h);
+    if (fmt === 'wide') cam.setViewOffset(w, h, LIMPO ? 0 : w * 0.12, -h * 0.05, w, h); else cam.setViewOffset(w, h, 0, -h * 0.06, w, h);
     cam.updateProjectionMatrix();
   }
   if (window.ResizeObserver) new ResizeObserver(fit).observe(stage); else window.addEventListener('resize', fit);
