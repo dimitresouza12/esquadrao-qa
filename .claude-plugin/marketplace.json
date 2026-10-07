@@ -1,0 +1,16 @@
+{
+  "name": "esquadrao-qa",
+  "owner": {
+    "name": "Dimitre Souza"
+  },
+  "plugins": [
+    {
+      "name": "esquadrao-qa",
+      "source": "./plugin",
+      "description": "Esquadrão de agentes de IA que testa o seu sistema e mostra o teste ao vivo numa cena 3D."
+    }
+  ],
+  "metadata": {
+    "description": "Esquadrão QA: agentes de IA que testam o seu sistema e mostram o teste ao vivo."
+  }
+}

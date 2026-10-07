@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/testar/viewer/hook.mjs\" start" }] }],
+    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/testar/viewer/hook.mjs\" stop" }] }]
+  }
+}

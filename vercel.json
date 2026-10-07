@@ -1,0 +1,1 @@
+{ "buildCommand": "node scripts/build.mjs", "outputDirectory": "site/dist" }
