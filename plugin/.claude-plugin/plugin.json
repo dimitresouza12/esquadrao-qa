@@ -1,6 +1,6 @@
 {
   "name": "esquadrao-qa",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Esquadrão de agentes de IA que testa o seu sistema (localhost ou homologação) e mostra o teste ao vivo numa cena 3D.",
   "author": { "name": "Dimitre Souza", "url": "https://otimizai.net.br" },
   "homepage": "https://github.com/dimitresouza12/esquadrao-qa",

@@ -11,7 +11,7 @@ let raw = ''; process.stdin.on('data', (c) => (raw += c)).on('end', () => {
     const rel = path.join(dir, 'relatorio', id + '.md');
     if (modo === 'start' && d.estado === 'fila') d.estado = 'rodando';
     else if (modo === 'stop') {
-      if (d.estado === 'rodando') d.estado = fs.existsSync(rel) ? 'concluido' : 'falhou';
+      if (d.estado === 'rodando') d.estado = fs.existsSync(rel) && /^##\s*(Plano executado|N[aã]o testado)/im.test(fs.readFileSync(rel, 'utf8')) ? 'concluido' : 'falhou'; // relatório só com "Achados" = agente parou no meio
       if (!(d.achados || []).length && fs.existsSync(rel)) d.achados = achadosDoRelatorio(fs.readFileSync(rel, 'utf8'));
     } else return;
     d.atualizadoEm = new Date().toISOString();
