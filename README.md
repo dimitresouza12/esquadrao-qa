@@ -73,7 +73,7 @@ Depois rode `/esquadrao-qa:testar` apontando para `http://localhost:3999`.
 - Os agentes erram. Revise os achados antes de agir.
 
 ## Modo gravação (para fazer vídeos)
-Na página da demonstração, `#gravar` abre só a cena em tela cheia, começando do zero, e `#gravar-vertical` faz o mesmo em 9:16.
+Na página da demonstração, acrescentar `#gravar` (horizontal) ou `#gravar-vertical` (Reels e Stories) ao endereço da página abre só a cena em tela cheia, começando do zero. Esc ou o botão que aparece no canto sai do modo.
 
 ## Para desenvolver
 ```
