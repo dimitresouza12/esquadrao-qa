@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Servidor local do Esquadrão QA: serve a cena e o estado dos agentes. Escuta só em 127.0.0.1.
 // Uso: node servidor.mjs [--dir .esquadrao] [--port 4777] [--web ../site/dist]
-import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url'; import { achadosDoRelatorio } from './achados.mjs';
 const aqui = path.dirname(fileURLToPath(import.meta.url));
 const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i > 0 ? process.argv[i + 1] : d; };
 const DIR = path.resolve(arg('dir', '.esquadrao')), WEB = path.resolve(arg('web', path.join(aqui, 'web'))), PORTA = +arg('port', 4777);
@@ -20,6 +20,9 @@ function estado() {
     let d = lerJson(path.join(DIR, 'ao-vivo', id + '.json'));
     if (d) cache.set(id, d); else d = cache.get(id); // arquivo lido no meio da escrita: usa a última leitura boa
     if (!d) continue;
+    if (!(d.achados || []).length && d.estado !== 'fila') { // agente não reportou ao vivo: usa o relatório dele
+      try { const r = path.join(DIR, 'relatorio', id + '.md'); if (fs.statSync(r).size < 200000) d = { ...d, achados: achadosDoRelatorio(fs.readFileSync(r, 'utf8')) }; } catch {}
+    }
     agentes[id] = { estado: EST.includes(d.estado) ? d.estado : 'fila', acao: limpa(d.acao, 160), atualizadoEm: limpa(d.atualizadoEm, 40), achados: (Array.isArray(d.achados) ? d.achados : []).slice(0, 60).map((x) => ({ sev: SEV.includes(x?.sev) ? x.sev : 'baixo', texto: limpa(x?.texto, 240), confirmado: x?.confirmado !== false })) };
   }
   return { versao: 1, plano, agentes, relatorio: fs.existsSync(path.join(DIR, 'relatorio', 'RESUMO.md')) };

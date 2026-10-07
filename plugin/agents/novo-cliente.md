@@ -32,6 +32,8 @@ O orquestrador informa o comando base REPORTAR no seu prompt. Use sempre:
 - Ao terminar: `REPORTAR agente novo-cliente --estado concluido` (ou `--estado falhou`)
 Mensagens em português, até 120 caracteres, sem HTML.
 
+Reserva: a cena ao vivo também lê o seu relatório. Por isso, logo ao começar crie `.esquadrao/relatorio/novo-cliente.md` contendo só `# novo-cliente` e `## Achados`. A cada achado confirmado, **acrescente na hora** (append, sem reescrever o arquivo) uma linha `- <crit|alto|medio|baixo> (confirmado|suspeita): título curto`. Se o REPORTAR falhar, siga assim mesmo.
+
 ## Gravidade
 - crit: perde dinheiro, vaza dados de outro cliente ou derruba o sistema.
 - alto: quebra uma regra importante ou abre uma brecha explorável com pouco esforço.
@@ -49,5 +51,5 @@ Comece lendo `.esquadrao/mapa.md` e `.esquadrao/mapa.json`. Pule o que o mapa di
 - Simule o cliente que volta depois de 30 dias (sessão expirada).
 
 ## Relatório
-Escreva `.esquadrao/relatorio/novo-cliente.md`, curto: "Plano executado" (2 a 4 linhas); "Achados", um item por achado em até 3 linhas (gravidade e confirmado/suspeita, como reproduzir, impacto — sem bloco longo de evidência, só o essencial); "Não testado e por quê" (1 a 3 linhas).
+Complete `.esquadrao/relatorio/novo-cliente.md` (que já tem a seção "Achados" com as linhas acrescentadas durante o teste; não apague nem reordene essas linhas) acrescentando ao final "Plano executado" (2 a 4 linhas) e "Não testado e por quê" (1 a 3 linhas). Em "Achados", um item por achado em até 3 linhas, SEMPRE começando por `- <crit|alto|medio|baixo> (confirmado|suspeita): título` (a cena ao vivo lê essas linhas; depois: como reproduzir, impacto — sem bloco longo de evidência, só o essencial).
 Ao final, responda ao orquestrador com no máximo 6 linhas: contagem por gravidade e os 3 achados mais graves, uma linha cada.
